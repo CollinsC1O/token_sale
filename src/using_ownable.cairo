@@ -16,4 +16,12 @@ mod UsingOwnable {
         #[flat]
         MyOwnableEvent: OwnableComponent::Event,
     }
+
+    //"Ownable" is how you embedded it as in your component
+    #[abi(embed_v0)]
+    impl OwnableImpl = OwnableComponent::Ownable<ContractState>;
+
+    impl OwnableIntrenalImpl = OwnableComponent::InternalImpl<ContractState>
+
+    
 }
