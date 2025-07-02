@@ -21,7 +21,5 @@ mod UsingOwnable {
     #[abi(embed_v0)]
     impl OwnableImpl = OwnableComponent::Ownable<ContractState>;
 
-    impl OwnableIntrenalImpl = OwnableComponent::InternalImpl<ContractState>
-
-    
+    impl OwnableIntrenalImpl = OwnableComponent::InternalImpl<ContractState>;
 }
