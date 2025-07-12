@@ -7,5 +7,6 @@ pub trait ITokenSale<TState> {
         ref self: TState, token_address: ContractAddress, amount: u256, token_prize: u256,
     );
     fn buy_token(ref self: TState, token_address: ContractAddress, amount: u256);
+    fn upgrade(ref self: TState, new_class_hash: ClassHash);
 }
 

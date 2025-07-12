@@ -1,20 +1,37 @@
 #[starknet::contract]
 mod TokenSale {
-    use starknet::{ContractAddress, get_caller_address, get_contract_address};
+    use UpgradeableComponent::InternalTrait;
+    use starknet::{ContractAddress, ClassHash, get_caller_address, get_contract_address};
     use starknet::storage::{
         Map, StoragePathEntry, StorageMapReadAccess, StorageMapWriteAccess,
         StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use core::num::traits::Zero;
     use crate::interfaces::itoken_sale::ITokenSale;
-    use crate::interfaces::ierc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use crate::interfaces::ierc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+
+    use openzeppelin::upgrades::upgradeable::UpgradeableComponent;
+
+    component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
+
+    //Impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
+    impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
 
     #[storage]
     struct Storage {
+        #[substorage(v0)]
+        upgradeable: UpgradeableComponent::Storage,
         accepted_payment_token: ContractAddress,
         token_prize: Map<ContractAddress, u256>,
         owner: ContractAddress,
         token_available_for_sale: Map<ContractAddress, u256>,
+    }
+
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    enum Event {
+        #[flat]
+        UpgradeableEvent: UpgradeableComponent::Event,
     }
 
     #[constructor]
@@ -72,7 +89,7 @@ mod TokenSale {
             self.token_available_for_sale.entry(token_address).write(amount);
             self.token_prize.entry(token_address).write(token_prize);
         }
-        
+
         fn buy_token(ref self: ContractState, token_address: ContractAddress, amount: u256) {
             let token_for_sale = self.token_available_for_sale.entry(token_address).read();
 
@@ -91,7 +108,19 @@ mod TokenSale {
             assert(buyers_balance == buying_prize, 'insufficient funds');
 
             payment_token.transfer_from(buyer, this_address, buying_prize);
-            token_to_buy.transfer(buyer, self.token_available_for_sale.entry(token_address).read());
+
+            let total_contract_balance = self.token_available_for_sale.entry(token_address).read();
+            token_to_buy.transfer(buyer, total_contract_balance);
+        }
+
+        fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
+            let owner = self.owner.read();
+            let caller = get_caller_address();
+
+            assert(caller == owner, 'Unauthorized caller');
+
+            //lets upgradde
+            self.upgradeable.upgrade(new_class_hash)
         }
     }
 }

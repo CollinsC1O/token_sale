@@ -9,22 +9,21 @@
 use starknet::ContractAddress;
 #[starknet::interface]
 pub trait IMyToken<TContractState> {
-    // fn name(self: @TContractState) -> ByteArray;
-    // fn symbol(self: @TContractState) -> ByteArray;
-    // fn decimals(self: @TContractState) -> u8;
-    // fn totalSupply(self: @TContractState) -> u256;
-    // fn balanceOf(self: @TContractState, account: ContractAddress) -> u256;
-    fn mint(ref self: TContractState, recipient: ContractAddress, amount: u256);
-    fn burn(ref self: TContractState, account: ContractAddress, amount: u256);
+    fn mint(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
+    fn burn(ref self: TContractState, account: ContractAddress, amount: u256) -> bool;
 }
+
 
 #[starknet::contract]
 pub mod MyToken {
     //use openzeppelin_token::erc20::interface::IERC20;
-    use openzeppelin_token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
-    use openzeppelin_access::ownable::OwnableComponent;
-    use starknet::ContractAddress;
-    use core::byte_array::ByteArray;
+    use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
+    use openzeppelin::access::ownable::OwnableComponent;
+    use starknet::{ContractAddress, get_caller_address};
+    use core::num::traits::Zero;
+
+    //use token_sale::interfaces::ierc20::IERC20;
+    use super::IMyToken;
 
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
@@ -58,7 +57,7 @@ pub mod MyToken {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, recipient: ContractAddress, owner: ContractAddress) {
+    fn constructor(ref self: ContractState, owner: ContractAddress) {
         let name = "MrT_Token";
         let symbol = "MTTK";
         //let initial_supply = 1000000;
@@ -69,16 +68,21 @@ pub mod MyToken {
     }
 
     #[abi(embed_v0)]
-    impl MyTokenImpl of super::IMyToken<ContractState> {
-        fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) {
+    impl IMyTokenImpl of IMyToken<ContractState> {
+        fn mint(ref self: ContractState, recipient: ContractAddress, amount: u256) -> bool {
             //let initial_supply = 1000000;
             self.ownable.assert_only_owner();
-            self.erc20.mint(recipient, amount)
+            self.erc20.mint(recipient, amount);
+
+            true
         }
 
-        fn burn(ref self: ContractState, account: ContractAddress, amount: u256) {
+        fn burn(ref self: ContractState, account: ContractAddress, amount: u256) -> bool {
             self.ownable.assert_only_owner();
+            assert(!account.is_zero(), 'you cannot burn to address zero');
             self.erc20.burn(account, amount);
+
+            true
         }
     }
 }

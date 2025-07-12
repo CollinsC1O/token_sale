@@ -6,8 +6,13 @@ edition = "2024_07"
 # See more keys and their definitions at https://docs.swmansion.com/scarb/docs/reference/manifest.html
 
 [dependencies]
-openzeppelin_token = "1.0.0"
-openzeppelin_access = "1.0.0"
+openzeppelin = "1.0.0"
+#openzeppelin_token = "1.0.0"
+#openzeppelin_access = "1.0.0"
+#openzeppelin_upgrades = "1.0.0"
+#openzeppelin = { git = "https://github.com/OpenZeppelin/cairo-contracts.git", tag = "v1.0.0" }
+# the main openzeppelin package from the registry should include all the components needed, 
+# including UpgradeableComponent, OwnableComponent and ERC20Component.
 starknet = "2.9.4"
 
 [dev-dependencies]

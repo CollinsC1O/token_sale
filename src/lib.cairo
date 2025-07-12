@@ -1,5 +1,5 @@
 mod erc20Token;
-mod ownable;
+mod ownable_component;
 mod using_ownable;
 
 // for token_sale

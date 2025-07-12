@@ -1,6 +1,6 @@
 #[starknet::contract]
 mod UsingOwnable {
-    use crate::ownable::OwnableComponent;
+    use crate::ownable_component::OwnableComponent;
 
     component!(path: OwnableComponent, storage: MyOwnable, event: MyOwnableEvent);
 
